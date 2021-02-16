@@ -24,10 +24,7 @@
 
 package hudson.cli;
 
-import hudson.model.FreeStyleProject;
-import hudson.model.Job;
-import hudson.model.ListView;
-import hudson.model.View;
+import hudson.model.*;
 import jenkins.model.Jenkins;
 import org.junit.Test;
 
@@ -51,6 +48,54 @@ public class Part2Test extends ViewManipulationTestBase {
         assertThat(j.jenkins.getView("curView").contains(project), equalTo(false));
 
         final CLICommandInvoker.Result result = command
+                .authorizedTo(Jenkins.READ, View.READ, Job.READ, View.CONFIGURE)
+                .invokeWithArgs("curView", "newProject");
+
+        assertThat(result, succeededSilently());
+        assertThat(j.jenkins.getView("curView").getAllItems().size(), equalTo(1));
+        assertThat(j.jenkins.getView("curView").contains(project), equalTo(true));
+    }
+
+    @Test public void addThreeJobs() throws Exception {
+
+        j.jenkins.addView(new ListView("curView"));
+        FreeStyleProject project1 = j.createFreeStyleProject("newProject1");
+        FreeStyleProject project2 = j.createFreeStyleProject("newProject2");
+        FreeStyleProject project3 = j.createFreeStyleProject("newProject3");
+        assertThat(j.jenkins.getView("curView").getAllItems().size(), equalTo(0));
+
+        CLICommandInvoker.Result result;
+
+        result = command
+                .authorizedTo(Jenkins.READ, View.READ, Job.READ, View.CONFIGURE)
+                .invokeWithArgs("curView", "newProject1");
+
+        result = command
+                .authorizedTo(Jenkins.READ, View.READ, Job.READ, View.CONFIGURE)
+                .invokeWithArgs("curView", "newProject2");
+        result = command
+                .authorizedTo(Jenkins.READ, View.READ, Job.READ, View.CONFIGURE)
+                .invokeWithArgs("curView", "newProject3");
+
+        assertThat(result, succeededSilently());
+        assertThat(j.jenkins.getView("curView").getAllItems().size(), equalTo(3));
+        assertThat(j.jenkins.getView("curView").contains(project1), equalTo(true));
+        assertThat(j.jenkins.getView("curView").contains(project2), equalTo(true));
+        assertThat(j.jenkins.getView("curView").contains(project3), equalTo(true));
+    }
+
+    @Test public void addExistingJobs() throws Exception {
+
+        j.jenkins.addView(new ListView("curView"));
+        FreeStyleProject project = j.createFreeStyleProject("newProject");
+        ((DirectlyModifiableView) j.jenkins.getView("curView")).add(project);
+
+        assertThat(j.jenkins.getView("curView").getAllItems().size(), equalTo(1));
+        assertThat(j.jenkins.getView("curView").contains(project), equalTo(true));
+
+        CLICommandInvoker.Result result;
+
+        result = command
                 .authorizedTo(Jenkins.READ, View.READ, Job.READ, View.CONFIGURE)
                 .invokeWithArgs("curView", "newProject");
 
