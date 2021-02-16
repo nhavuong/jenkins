@@ -52,10 +52,10 @@ public class Part2Test extends ViewManipulationTestBase {
 
         final CLICommandInvoker.Result result = command
                 .authorizedTo(Jenkins.READ, View.READ, Job.READ, View.CONFIGURE)
-                .invokeWithArgs("aView", "aProject");
+                .invokeWithArgs("curView", "newProject");
 
         assertThat(result, succeededSilently());
-        assertThat(j.jenkins.getView("aView").getAllItems().size(), equalTo(1));
-        assertThat(j.jenkins.getView("aView").contains(project), equalTo(true));
+        assertThat(j.jenkins.getView("curView").getAllItems().size(), equalTo(1));
+        assertThat(j.jenkins.getView("curView").contains(project), equalTo(true));
     }
 }
